@@ -46,7 +46,7 @@ export default function AgentsPanel({ showToast }: AgentsPanelProps) {
     setRunning(true);
     setResult(null);
     try {
-      const data = await (opsService as any).startMultiRegionRun?.({
+      const data = await opsService.runMultiRegion({
         base: {
           scenario_yaml: scenarioYaml,
           load_config: {

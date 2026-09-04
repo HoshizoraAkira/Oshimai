@@ -28,13 +28,21 @@ export default function TargetVerificationPanel({ targetBaseUrl, showToast, onSt
       const data = await verificationService.getVerifyStatus(targetBaseUrl);
       setStatus(data);
       onStatusChange?.(data);
-    } catch {
+    } catch (err: any) {
+      // A 400 here just means the in-progress URL isn't parseable yet (expected while typing,
+      // debounced every keystroke) — not worth a toast. A network failure (status 0) or a 5xx is
+      // a real problem: status===null renders nothing below, which would otherwise make the
+      // public-target warning banner silently vanish exactly when it should flag an unverified
+      // target, so that case gets surfaced instead of swallowed.
+      if (!err?.status || err.status >= 500) {
+        showToast(t('toasts.verify_status_check_failed', 'Could not check target verification status: %s', [err?.message || 'unknown error']), 'error');
+      }
       setStatus(null);
       onStatusChange?.(null);
     } finally {
       setChecking(false);
     }
-  }, [targetBaseUrl, onStatusChange]);
+  }, [targetBaseUrl, onStatusChange, showToast, t]);
 
   useEffect(() => {
     const tId = setTimeout(fetchStatus, 400); // Debounce while typing

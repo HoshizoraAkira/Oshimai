@@ -165,7 +165,7 @@ export default function PresetsPanel({ showToast }: PresetsPanelProps) {
       </div>
 
       <SectionTile
-        eyebrow={editingId ? t('ops.presets.create_eyebrow', 'Create') : t('ops.presets.create_eyebrow', 'Create')}
+        eyebrow={editingId ? t('ops.presets.edit_eyebrow', 'Edit') : t('ops.presets.create_eyebrow', 'Create')}
         title={editingId ? t('ops.presets.edit_title', 'Edit Preset') : t('ops.presets.create_title', 'New Preset')}
       >
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

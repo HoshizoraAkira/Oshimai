@@ -144,7 +144,8 @@
     "toast_awaiting_2nd_approval": "Run %s menyasar production — menunggu persetujuan kedua.",
     "toast_run_initiated": "Test Run dimulai: %s",
     "toast_launch_err": "Gagal meluncurkan: %s",
-    "toast_load_presets_err": "Gagal memuat preset budaya."
+    "toast_load_presets_err": "Gagal memuat preset budaya.",
+    "toast_load_optional_presets_err": "Gagal memuat sebagian preset opsional."
   },
   "builder": {
     "visual_canvas": "Kanvas Visual",
@@ -527,6 +528,7 @@
       "badge_builtin": "BAWAAN",
       "badge_custom": "KUSTOM",
       "create_eyebrow": "Buat",
+      "edit_eyebrow": "Ubah",
       "create_title": "Preset Baru",
       "edit_title": "Ubah Preset",
       "field_name": "Nama Preset",
@@ -762,6 +764,7 @@
     "confirm_abort": "Hentikan darurat eksekusi untuk %s?",
     "link_copied": "Link status publik disalin: %s",
     "badge_copied": "Badge markdown disalin — tempel di README kamu.",
+    "clipboard_failed": "Gagal menyalin ke clipboard. Link: %s",
     "share_failed": "Gagal share: %s",
     "no_baseline": "Belum ada baseline run untuk dibandingkan.",
     "trend_failed": "Gagal cek tren: %s",
@@ -776,6 +779,7 @@
     "challenge_failed": "Gagal meminta challenge: %s",
     "not_verified_yet": "Belum terverifikasi: %s",
     "target_verified": "Target terverifikasi via %s!",
-    "confirm_failed": "Gagal konfirmasi: %s"
+    "confirm_failed": "Gagal konfirmasi: %s",
+    "verify_status_check_failed": "Gagal memeriksa status verifikasi target: %s"
   }
 }

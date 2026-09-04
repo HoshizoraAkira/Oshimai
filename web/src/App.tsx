@@ -289,6 +289,7 @@ function AppShell() {
         currentRunId={currentRunId}
         isRunActive={isRunActive}
         onAbortRun={handleAbortRun}
+        showToast={showToast}
         targetBaseUrl={targetBaseUrl}
         vus={20}
         isCollapsed={isDockCollapsed}

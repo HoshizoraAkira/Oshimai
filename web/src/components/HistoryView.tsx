@@ -22,8 +22,15 @@ export default function HistoryView({ onInspectRun, onOpenAdvisory, onViewCockpi
     try {
       const data = await runsService.createShareLink(runId);
       const publicUrl = `${window.location.origin}/?public=${data.share_token}`;
-      await navigator.clipboard.writeText(publicUrl).catch(() => {});
-      showToast(t('toasts.link_copied', 'Public status link copied: %s', [publicUrl]), 'success');
+      try {
+        await navigator.clipboard.writeText(publicUrl);
+        showToast(t('toasts.link_copied', 'Public status link copied: %s', [publicUrl]), 'success');
+      } catch {
+        // The share link itself was created successfully — only the clipboard write failed
+        // (insecure context, permission denied, unfocused document), so show the link instead
+        // of claiming it's on the clipboard when it isn't.
+        showToast(t('toasts.clipboard_failed', 'Could not copy to clipboard. Link: %s', [publicUrl]), 'warning');
+      }
     } catch (err: any) {
       showToast(t('toasts.share_failed', 'Failed to share: %s', [err.message]), 'error');
     }
@@ -32,8 +39,12 @@ export default function HistoryView({ onInspectRun, onOpenAdvisory, onViewCockpi
   const handleCopyBadge = async (runId: string) => {
     const badgeUrl = `${window.location.origin}/api/v1/runs/${runId}/badge.svg`;
     const markdown = `[![Battle-Tested by Oshimai](${badgeUrl})](${window.location.origin})`;
-    await navigator.clipboard.writeText(markdown).catch(() => {});
-    showToast(t('toasts.badge_copied', 'Badge markdown copied — paste it in your README.'), 'success');
+    try {
+      await navigator.clipboard.writeText(markdown);
+      showToast(t('toasts.badge_copied', 'Badge markdown copied — paste it in your README.'), 'success');
+    } catch {
+      showToast(t('toasts.clipboard_failed', 'Could not copy to clipboard. Link: %s', [markdown]), 'warning');
+    }
   };
 
   const handleCheckTrend = async (runId: string) => {

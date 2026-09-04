@@ -4,6 +4,7 @@ import {
 } from '@carbon/icons-react';
 import { useTranslation } from '../context/I18nContext';
 import { useSystemLogs } from '../hooks/useSystemLogs';
+import { ToastType } from '../types/models';
 
 export interface AdminDockProps {
   currentRunId?: string | null;
@@ -14,6 +15,7 @@ export interface AdminDockProps {
   isCollapsed?: boolean;
   onToggleCollapse?: (collapsed: boolean) => void;
   sidebarCollapsed?: boolean;
+  showToast?: (msg: string, type?: ToastType) => void;
 }
 
 export default function AdminDock({
@@ -25,6 +27,7 @@ export default function AdminDock({
   isCollapsed: controlledCollapsed,
   onToggleCollapse,
   sidebarCollapsed,
+  showToast,
 }: AdminDockProps) {
   const { t } = useTranslation();
   const [internalCollapsed, setInternalCollapsed] = useState(false);
@@ -45,7 +48,7 @@ export default function AdminDock({
     isConnected,
     clearLogs: handleClearLogs,
     logContainerRef,
-  } = useSystemLogs(isCollapsed);
+  } = useSystemLogs(isCollapsed, (message) => showToast?.(message, 'error'));
 
   const latestLog = filteredLogs.length > 0 ? filteredLogs[filteredLogs.length - 1] : null;
 

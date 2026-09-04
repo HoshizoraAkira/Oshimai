@@ -29,10 +29,6 @@ export const verificationService = {
   },
 
   confirmCloud(payload: any): Promise<{ verified: boolean; method?: string; resource?: string; matched_ip?: string; error?: string }> {
-    return apiClient.post('/api/v1/verify/cloud', payload);
-  },
-
-  verifyAwsIp(ipAddress: string): Promise<{ verified: boolean; range?: string; message?: string }> {
-    return apiClient.post('/api/v1/verify/aws-ip', { ip_address: ipAddress });
+    return apiClient.post('/api/v1/verify/confirm-cloud', payload);
   },
 };

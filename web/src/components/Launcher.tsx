@@ -131,10 +131,10 @@ export default function Launcher({
   useEffect(() => {
     presetsService.getDependencyPresets()
       .then(data => setDependencyPresets(data || []))
-      .catch(() => {});
+      .catch(() => showToast(t('launcher.toast_load_optional_presets_err', 'Failed to load some optional presets.'), 'warning'));
     presetsService.getCarrierPresets()
       .then(data => setCarrierPresets(data || []))
-      .catch(() => {});
+      .catch(() => showToast(t('launcher.toast_load_optional_presets_err', 'Failed to load some optional presets.'), 'warning'));
   }, []);
 
   const handleAddStage = () => {

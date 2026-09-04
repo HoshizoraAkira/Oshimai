@@ -3,7 +3,7 @@ import { LogEntry } from '../types/models';
 import { systemService } from '../services/systemService';
 import { streamService } from '../services/streamService';
 
-export function useSystemLogs(isCollapsed = false) {
+export function useSystemLogs(isCollapsed = false, onClearError?: (message: string) => void) {
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [autoScroll, setAutoScroll] = useState(true);
   const [filterLevel, setFilterLevel] = useState('ALL');
@@ -67,8 +67,8 @@ export function useSystemLogs(isCollapsed = false) {
     try {
       await systemService.clearSystemLogs();
       setLogs([]);
-    } catch {
-      // ignore
+    } catch (err: any) {
+      onClearError?.(err?.message || 'Failed to clear logs');
     }
   };
 

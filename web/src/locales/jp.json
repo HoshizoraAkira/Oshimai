@@ -144,7 +144,8 @@
     "toast_awaiting_2nd_approval": "Run %s は本番環境を対象としています — 2次承認待ちです。",
     "toast_run_initiated": "テスト実行を開始しました: %s",
     "toast_launch_err": "起動に失敗しました: %s",
-    "toast_load_presets_err": "文化的プリセットの読み込みに失敗しました。"
+    "toast_load_presets_err": "文化的プリセットの読み込みに失敗しました。",
+    "toast_load_optional_presets_err": "一部のオプションプリセットの読み込みに失敗しました。"
   },
   "builder": {
     "visual_canvas": "ビジュアルキャンバス",
@@ -527,6 +528,7 @@
       "badge_builtin": "標準",
       "badge_custom": "カスタム",
       "create_eyebrow": "新規作成",
+      "edit_eyebrow": "編集",
       "create_title": "新しいプリセット",
       "edit_title": "プリセットを編集",
       "field_name": "プリセット名",
@@ -762,6 +764,7 @@
     "confirm_abort": "実行 %s を緊急停止しますか？",
     "link_copied": "公開ステータスリンクをコピーしました: %s",
     "badge_copied": "Markdownバッジをコピーしました — READMEに貼り付けてください。",
+    "clipboard_failed": "クリップボードへのコピーに失敗しました。リンク: %s",
     "share_failed": "共有リンク生成に失敗しました: %s",
     "no_baseline": "比較対象となるベースライン実行がまだありません。",
     "trend_failed": "傾向分析に失敗しました: %s",
@@ -776,6 +779,7 @@
     "challenge_failed": "チャレンジの発行に失敗しました: %s",
     "not_verified_yet": "まだ検証されていません: %s",
     "target_verified": "%s 経由で対象の所有権が検証されました！",
-    "confirm_failed": "検証の確認に失敗しました: %s"
+    "confirm_failed": "検証の確認に失敗しました: %s",
+    "verify_status_check_failed": "ターゲットの検証ステータスを確認できませんでした: %s"
   }
 }

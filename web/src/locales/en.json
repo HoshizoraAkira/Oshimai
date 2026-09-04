@@ -144,7 +144,8 @@
     "toast_awaiting_2nd_approval": "Run %s targets production — waiting for 2nd approval.",
     "toast_run_initiated": "Test Run initiated: %s",
     "toast_launch_err": "Launch failed: %s",
-    "toast_load_presets_err": "Failed to load cultural presets."
+    "toast_load_presets_err": "Failed to load cultural presets.",
+    "toast_load_optional_presets_err": "Failed to load some optional presets."
   },
   "builder": {
     "visual_canvas": "Visual Canvas",
@@ -527,6 +528,7 @@
       "badge_builtin": "BUILT-IN",
       "badge_custom": "CUSTOM",
       "create_eyebrow": "Create",
+      "edit_eyebrow": "Edit",
       "create_title": "New Preset",
       "edit_title": "Edit Preset",
       "field_name": "Preset Name",
@@ -762,6 +764,7 @@
     "confirm_abort": "Emergency abort execution for %s?",
     "link_copied": "Public status link copied: %s",
     "badge_copied": "Badge markdown copied — paste it in your README.",
+    "clipboard_failed": "Could not copy to clipboard. Link: %s",
     "share_failed": "Failed to share: %s",
     "no_baseline": "No baseline run yet to compare against.",
     "trend_failed": "Failed to check trend: %s",
@@ -776,6 +779,7 @@
     "challenge_failed": "Failed to request challenge: %s",
     "not_verified_yet": "Not yet verified: %s",
     "target_verified": "Target verified via %s!",
-    "confirm_failed": "Failed to confirm: %s"
+    "confirm_failed": "Failed to confirm: %s",
+    "verify_status_check_failed": "Could not check target verification status: %s"
   }
 }

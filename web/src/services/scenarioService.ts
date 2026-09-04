@@ -36,8 +36,4 @@ export const scenarioService = {
   buildReplayScenario(payload: any): Promise<any> {
     return apiClient.post('/api/v1/scenarios/traces/replay', payload);
   },
-
-  replayTraceSession(sessionId: string): Promise<{ session_id: string; status: string }> {
-    return apiClient.post(`/api/v1/scenarios/traces/${sessionId}/replay`);
-  },
 };
