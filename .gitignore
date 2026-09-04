@@ -21,6 +21,12 @@ oshimai-agent
 *.out
 coverage*.out
 
+# Local run-history database (SQLite) — machine-specific state, not project source
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+
 # macOS
 .DS_Store
 

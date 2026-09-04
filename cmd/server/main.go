@@ -9,6 +9,8 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"path/filepath"
+	"strconv"
 	"syscall"
 	"time"
 
@@ -17,6 +19,47 @@ import (
 	"github.com/oshimai/twin/pkg/generator"
 	"github.com/oshimai/twin/pkg/server"
 )
+
+// envOr returns os.Getenv(key) if set (dotenv.Load has already populated the process environment
+// from .env by the time flags are defined), otherwise fallback. Used to give flags their defaults
+// so SERVER_ADDR/MAX_RUNS/CHAOS_DRIVER/DB_PATH work as documented in the README's Configuration
+// table, while the command-line flag (when passed) still wins by construction — flag.Parse()
+// overwrites whatever default was set here.
+func envOr(key, fallback string) string {
+	if v := os.Getenv(key); v != "" {
+		return v
+	}
+	return fallback
+}
+
+func envOrInt(key string, fallback int) int {
+	v := os.Getenv(key)
+	if v == "" {
+		return fallback
+	}
+	n, err := strconv.Atoi(v)
+	if err != nil {
+		log.Printf("[Oshimai] Warning: %s=%q is not a valid integer, using default %d", key, v, fallback)
+		return fallback
+	}
+	return n
+}
+
+// defaultDBPath resolves to oshimai.db next to the running binary (not the current working
+// directory) so the database is found in the same place regardless of where the server is
+// launched from. Falls back to a working-directory-relative path if the executable's own path
+// can't be resolved (e.g. an unusual container setup) rather than failing startup over it.
+func defaultDBPath() string {
+	exe, err := os.Executable()
+	if err != nil {
+		return "oshimai.db"
+	}
+	resolved, err := filepath.EvalSymlinks(exe)
+	if err != nil {
+		resolved = exe
+	}
+	return filepath.Join(filepath.Dir(resolved), "oshimai.db")
+}
 
 func main() {
 	logBuf := server.GetDefaultLogBuffer()
@@ -29,16 +72,29 @@ func main() {
 		log.Printf("[Oshimai] Warning: failed to load .env: %v", err)
 	}
 
-	addr := flag.String("addr", ":8080", "Server listen address")
-	maxRuns := flag.Int("max-runs", 2, "Maximum concurrent load test runs")
+	addr := flag.String("addr", envOr("SERVER_ADDR", ":8080"), "Server listen address")
+	maxRuns := flag.Int("max-runs", envOrInt("MAX_RUNS", 2), "Maximum concurrent load test runs")
 	enforceVerification := flag.Bool("enforce-target-verification", true, "Require DNS/well-known ownership proof before testing a public target (private/local targets are always exempt)")
 	requireProdApproval := flag.Bool("require-production-approval", true, "Hold runs labeled environment=production for a second operator's approval before executing")
-	chaosDriverMode := flag.String("chaos-driver", "mock", "Fault injection driver: mock (safe default, no side effects) | http_proxy (no-root userspace proxy, any OS) | netem (Linux + NET_ADMIN, most realistic) | resource_stress (CPU/memory/disk pressure on this host)")
+	chaosDriverMode := flag.String("chaos-driver", envOr("CHAOS_DRIVER", "mock"), "Fault injection driver: mock (safe default, no side effects) | http_proxy (no-root userspace proxy, any OS) | netem (Linux + NET_ADMIN, most realistic) | resource_stress (CPU/memory/disk pressure on this host)")
+	dbPath := flag.String("db", envOr("DB_PATH", defaultDBPath()), "SQLite database file for run history (persists across restarts). Use ':memory:' for a non-persistent in-memory store.")
 	flag.Parse()
 
 	log.Printf("[Oshimai] Initializing Control Plane Server on %s (Max Concurrent Runs: %d)...", *addr, *maxRuns)
 
-	repo := server.NewMemoryRepository()
+	var repo server.StorageRepository
+	if *dbPath == ":memory:" {
+		repo = server.NewMemoryRepository()
+		log.Printf("[Oshimai] Run history storage: in-memory (not persisted — will be lost on restart)")
+	} else {
+		sqliteRepo, err := server.NewSQLiteRepository(*dbPath)
+		if err != nil {
+			log.Fatalf("[Oshimai] Failed to open run history database at %q: %v", *dbPath, err)
+		}
+		defer sqliteRepo.Close()
+		repo = sqliteRepo
+		log.Printf("[Oshimai] Run history storage: SQLite at %s", *dbPath)
+	}
 	eb := server.NewEventBus()
 	defer eb.Close()
 
