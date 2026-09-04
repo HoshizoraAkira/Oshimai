@@ -1,0 +1,79 @@
+# Autonomous Virtual User Scenario: Dynamic Stateful E-Commerce User Journey
+id: ecom_user_journey_v1
+name: E-Commerce User Browsing and Checkout Flow
+description: Simulates an authentic user journey with Markov branching between checkout and cart abandonment
+base_url: https://httpbin.org
+initial_step_id: step_login
+timeout: 15s
+default_headers:
+  User-Agent: "ChaosTwin-VU/1.0"
+  Accept: "application/json"
+
+steps:
+  step_login:
+    id: step_login
+    name: Authentication
+    request:
+      method: POST
+      path: /post
+      headers:
+        Content-Type: application/json
+      body: '{"username": "shopper_01", "password": "secure_secret"}'
+      timeout: 5s
+    extractors:
+      - source: body_json
+        path: json.username
+        target_var: current_user
+      - source: status_code
+        target_var: login_status
+    transitions:
+      - target_step_id: step_browse_catalog
+        probability: 1.0
+    on_failure:
+      action: abort
+
+  step_browse_catalog:
+    id: step_browse_catalog
+    name: Browse Product Catalog
+    request:
+      method: GET
+      path: /get?user=${current_user}&category=electronics
+      timeout: 5s
+    transitions:
+      # Markov-style branching: 75% view cart, 25% drop off
+      - target_step_id: step_view_cart
+        probability: 0.75
+      - target_step_id: END
+        probability: 0.25
+
+  step_view_cart:
+    id: step_view_cart
+    name: View Cart
+    request:
+      method: GET
+      path: /get?user=${current_user}&action=cart_summary
+      timeout: 5s
+    transitions:
+      # Markov-style branching: 80% proceed to checkout, 20% abandon cart
+      - target_step_id: step_checkout
+        probability: 0.80
+      - target_step_id: END
+        probability: 0.20
+
+  step_checkout:
+    id: step_checkout
+    name: Finalize Order Checkout
+    request:
+      method: POST
+      path: /post
+      headers:
+        Content-Type: application/json
+      body: '{"buyer": "${current_user}", "payment_method": "credit_card"}'
+      timeout: 8s
+    assertions:
+      - type: status_in_range
+        min_code: 200
+        max_code: 299
+    transitions:
+      - target_step_id: END
+        probability: 1.0

@@ -1,0 +1,35 @@
+# Secret & local config — jangan di-commit!
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+*credentials*.json
+
+# AI assistant / local tooling config — machine-specific, not project source
+.claude/
+.cursor/
+CLAUDE.local.md
+
+# Go build output
+bin/
+cli
+oshimai-server
+oshimai-agent
+
+# Go test cache & coverage
+*.out
+coverage*.out
+
+# macOS
+.DS_Store
+
+# Node / frontend
+web/node_modules/
+web/dist/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo

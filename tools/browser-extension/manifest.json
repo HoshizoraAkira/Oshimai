@@ -1,0 +1,15 @@
+{
+  "manifest_version": 3,
+  "name": "Oshimai Record & Replay",
+  "version": "1.0.0",
+  "description": "Record your clicks as you use a web app, then export them as a HAR file (or send directly to Oshimai) to auto-generate a load-test scenario — no OpenAPI spec needed.",
+  "permissions": ["webRequest", "storage", "activeTab", "scripting", "downloads"],
+  "host_permissions": ["<all_urls>"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Oshimai Record & Replay"
+  }
+}

@@ -1,0 +1,39 @@
+name: Resilience Gate (example)
+
+# This workflow is a runnable template for the "Oshimai Resilience Gate" composite action
+# (.github/actions/resilience-gate) — copy it into your own repo's .github/workflows/ and point
+# `target-base-url` / `scenario-path` at your own staging deployment and scenario file.
+# It's manual-trigger-only here so it doesn't fail this repo's CI by default (there is no live
+# staging deployment for the example scenario to hit in this repository's own pipeline).
+on:
+  workflow_dispatch: {}
+
+jobs:
+  resilience-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Build and start the Oshimai control plane
+        run: |
+          go build -o /tmp/oshimai-server ./cmd/server
+          /tmp/oshimai-server -addr :8080 -chaos-driver mock &
+          for i in $(seq 1 20); do
+            curl -sf http://localhost:8080/api/v1/runs > /dev/null && break
+            sleep 0.5
+          done
+
+      - name: Run resilience gate
+        uses: ./.github/actions/resilience-gate
+        with:
+          server: http://localhost:8080
+          scenario-path: examples/scenario_ecommerce.yaml
+          vus: '10'
+          duration: '15s'
+          health-threshold: '70'
+          # baseline-run-id: run-1699999999-1   # Optional: compare against a known-good run.

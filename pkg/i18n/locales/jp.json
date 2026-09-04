@@ -1,0 +1,37 @@
+{
+  "server": {
+    "internal_error": "内部サーバーエラーが発生しました",
+    "invalid_json": "無効なJSONペイロード: %v",
+    "run_not_found": "テスト実行 \"%s\" が見つかりません",
+    "run_id_required": "実行IDが必要です",
+    "target_url_required": "target_url パラメータが必要です",
+    "openapi_required": "openapi_spec が必要です",
+    "synthesis_failed": "シナリオ合成に失敗しました: %v",
+    "streaming_unsupported": "サーバーがストリーミングをサポートしていません",
+    "no_baseline": "比較対象となるベースライン実行がまだありません",
+    "share_token_failed": "共有トークンの生成に失敗しました",
+    "public_run_not_found": "この共有リンクに対応する公開実行が見つかりません",
+    "public_domain_blocked": "\"%s\" は周知のパブリックドメインであるためターゲットとして検証できません",
+    "resolve_failed": "\"%s\" の名前解決ができませんでした: %v",
+    "aws_keys_required": "aws_access_key と aws_secret_key が必要です",
+    "aws_ip_not_found": "\"%s\" の解決済みIP (%v) はこのAWSアカウントのElastic IPに見つかりませんでした",
+    "cultural_preset_not_found": "トラフィックプリセット \"%s\" が見つかりません",
+    "agent_registered": "エージェントが正常に登録されました",
+    "multiregion_started": "マルチリージョン負荷テストが開始されました",
+    "approval_required": "本番環境でのテストには第2オペレーターの承認が必要です",
+    "verification_required": "パブリックターゲットをテストする前に所有権の検証が必要です"
+  },
+  "verification": {
+    "status_verified": "検証済み",
+    "status_pending": "検証待ち",
+    "status_failed": "検証チャレンジに失敗しました",
+    "dns_txt_record": "次のトークンでDNS TXTレコードを追加してください: %s",
+    "well_known_file": "/.well-known/oshimai-challenge に次の内容でファイルを配置してください: %s"
+  },
+  "remediation": {
+    "circuit_broken": "エラー率またはレイテンシ超過によりサーキットブレーカーが作動しました",
+    "high_p99": "P99レイテンシが目標しきい値を超過しました: %d ms",
+    "network_degradation": "ネットワーク劣化が検出されました: パケットロス %d%%",
+    "scale_recommendation": "サービスレプリカのスケールアップまたは低速エンドポイントの最適化を検討してください"
+  }
+}

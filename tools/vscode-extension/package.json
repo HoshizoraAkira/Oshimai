@@ -1,0 +1,59 @@
+{
+  "name": "oshimai-vscode",
+  "displayName": "Oshimai",
+  "description": "Run a load-test scenario YAML straight from the editor against a local or remote Oshimai server.",
+  "version": "1.0.0",
+  "publisher": "oshimai",
+  "engines": { "vscode": "^1.85.0" },
+  "categories": ["Testing", "Other"],
+  "activationEvents": ["onLanguage:yaml"],
+  "main": "./extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "oshimai.runScenario",
+        "title": "Oshimai: Run This Scenario",
+        "icon": "$(play)"
+      },
+      {
+        "command": "oshimai.openDashboard",
+        "title": "Oshimai: Open Live Cockpit"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "oshimai.runScenario",
+          "when": "resourceLangId == yaml",
+          "group": "navigation"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Oshimai",
+      "properties": {
+        "oshimai.serverUrl": {
+          "type": "string",
+          "default": "http://localhost:8080",
+          "description": "Base URL of the Oshimai server to send runs to."
+        },
+        "oshimai.defaultVUs": {
+          "type": "number",
+          "default": 5,
+          "description": "Virtual users to use for a quick run triggered from the editor."
+        },
+        "oshimai.defaultDurationSeconds": {
+          "type": "number",
+          "default": 30,
+          "description": "Duration in seconds for a quick run triggered from the editor."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "package": "vsce package"
+  },
+  "devDependencies": {
+    "@vscode/vsce": "^2.24.0"
+  }
+}

@@ -1,0 +1,242 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ==========================================================================
+   Oshimai Design Foundation — IBM Carbon Design System (Gray 100 theme)
+   Every page pulls from this single token + component layer instead of
+   hand-rolling ad hoc utility soup, so spacing, motion, and color read as
+   one consistent product instead of N slightly-different dashboards.
+   ========================================================================== */
+
+:root {
+  /* Color tokens (Carbon Gray 100 dark theme) */
+  --cds-background: #161616;
+  --cds-layer-01: #262626;
+  --cds-layer-02: #393939;
+  --cds-layer-03: #525252;
+  --cds-layer-hover-01: #333333;
+  --cds-layer-hover-02: #474747;
+  --cds-border-subtle: #393939;
+  --cds-border-strong: #6f6f6f;
+  --cds-text-primary: #f4f4f4;
+  --cds-text-secondary: #c6c6c6;
+  --cds-text-placeholder: #6f6f6f;
+  --cds-text-helper: #8d8d8d;
+  --cds-text-on-color: #ffffff;
+  --cds-interactive: #0f62fe;
+  --cds-interactive-hover: #0353e9;
+  --cds-link: #78a9ff;
+  --cds-focus: #ffffff;
+  --cds-support-success: #24a148;
+  --cds-support-warning: #f1c21b;
+  --cds-support-error: #da1e28;
+  --cds-support-info: #4589ff;
+  --cds-support-novel: #a56eff;
+
+  /* Second shade of each semantic color: the dark theme pairs a darker tone for
+     bg/border regions with a lighter, higher-contrast tone for text/icons drawn
+     directly on the page background — both are legitimate Carbon values, not
+     duplicates, so they get their own tokens rather than collapsing to one. */
+  --cds-support-success-text: #42be65;
+  --cds-support-error-text: #fa4d56;
+  --cds-support-success-hover: #1f8b3d;
+  --cds-support-error-hover: #b81922;
+  --cds-support-warning-hover: #d2a106;
+  --cds-support-novel-text: #be95ff;
+  --cds-support-novel-strong: #8a3ffc;
+
+  /* Recessed/elevated surface shades beyond the 3-layer scale above — distinct
+     from --cds-background/--cds-layer-01 by design (a sunken code panel, a
+     dock header bar, a terminal well), not accidental near-duplicates. */
+  --cds-surface-sunken: #1b1b1b;
+  --cds-surface-header: #1f1f1f;
+  --cds-surface-deep: #121212;
+
+  /* Spacing scale — Carbon's $spacing-01..$spacing-09 (2px base unit) */
+  --cds-sp-01: 0.125rem; /* 2px */
+  --cds-sp-02: 0.25rem;  /* 4px */
+  --cds-sp-03: 0.5rem;   /* 8px */
+  --cds-sp-04: 0.75rem;  /* 12px */
+  --cds-sp-05: 1rem;     /* 16px */
+  --cds-sp-06: 1.5rem;   /* 24px */
+  --cds-sp-07: 2rem;     /* 32px */
+  --cds-sp-08: 2.5rem;   /* 40px */
+  --cds-sp-09: 3rem;     /* 48px */
+
+  /* Motion — Carbon's productive easing + duration tokens */
+  --cds-ease-standard: cubic-bezier(0.2, 0, 0.38, 0.9);
+  --cds-ease-entrance: cubic-bezier(0, 0, 0.38, 0.9);
+  --cds-ease-exit: cubic-bezier(0.2, 0, 1, 0.9);
+  --cds-duration-fast: 70ms;
+  --cds-duration-moderate: 150ms;
+  --cds-duration-slow: 240ms;
+}
+
+/* Carbon's signature: sharp, unrounded corners on every container, button, field, and card.
+   Small circular status indicators (`.rounded-full`, e.g. the live-status LED dot) are exempt —
+   Carbon's own status indicators and avatars are intentionally circular. */
+*:not(.rounded-full) {
+  border-radius: 0 !important;
+}
+
+body {
+  background-color: var(--cds-background);
+  color: var(--cds-text-primary);
+  font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Carbon's focus treatment: a 2px solid ring, offset outward, on EVERY
+   interactive element — famously distinct from the soft blue browser default. */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--cds-interactive);
+  outline-offset: -2px;
+}
+
+button,
+input,
+select,
+textarea {
+  transition: background-color var(--cds-duration-fast) var(--cds-ease-standard),
+              border-color var(--cds-duration-fast) var(--cds-ease-standard),
+              color var(--cds-duration-fast) var(--cds-ease-standard);
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--cds-background); }
+::-webkit-scrollbar-thumb { background: var(--cds-layer-02); }
+::-webkit-scrollbar-thumb:hover { background: var(--cds-layer-03); }
+
+/* Flow Canvas Grid Background */
+.flow-grid-bg {
+  background-color: var(--cds-background);
+  background-image: radial-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+@keyframes pulseGreen {
+  0% { box-shadow: 0 0 0 0 rgba(36, 161, 72, 0.7); }
+  70% { box-shadow: 0 0 0 6px rgba(36, 161, 72, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(36, 161, 72, 0); }
+}
+@keyframes pulseYellow {
+  0% { box-shadow: 0 0 0 0 rgba(241, 194, 27, 0.7); }
+  70% { box-shadow: 0 0 0 6px rgba(241, 194, 27, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(241, 194, 27, 0); }
+}
+.pulse-dot-green { animation: pulseGreen 1.8s infinite; }
+.pulse-dot-yellow { animation: pulseYellow 1.2s infinite; }
+
+@keyframes cdsFadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.cds-enter {
+  animation: cdsFadeIn var(--cds-duration-slow) var(--cds-ease-entrance);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cds-enter, .pulse-dot-green, .pulse-dot-yellow { animation: none; }
+  button, input, select, textarea { transition: none; }
+}
+
+/* ==========================================================================
+   Component layer — the shared vocabulary every page composes from.
+   ========================================================================== */
+@layer components {
+
+  /* --- Buttons (Carbon Button: Primary / Secondary / Tertiary / Ghost / Danger) --- */
+  .cds-btn {
+    @apply inline-flex items-center justify-center gap-2 h-10 px-4 font-mono text-xs font-semibold
+           uppercase tracking-wide whitespace-nowrap select-none;
+  }
+  .cds-btn:disabled { @apply opacity-40 cursor-not-allowed; }
+  .cds-btn-sm { @apply h-8 px-3 text-[11px]; }
+  .cds-btn-primary   { @apply cds-btn bg-[var(--cds-interactive)] text-white hover:bg-[var(--cds-interactive-hover)]; }
+  .cds-btn-secondary { @apply cds-btn bg-[var(--cds-layer-02)] text-[var(--cds-text-primary)] hover:bg-[var(--cds-layer-03)]; }
+  .cds-btn-tertiary  { @apply cds-btn bg-transparent text-[var(--cds-interactive)] border border-[var(--cds-interactive)] hover:bg-[var(--cds-interactive)] hover:text-white; }
+  .cds-btn-ghost     { @apply cds-btn bg-transparent text-[var(--cds-link)] hover:bg-[var(--cds-layer-01)] h-auto px-2 py-1; }
+  .cds-btn-danger    { @apply cds-btn bg-[var(--cds-support-error)] text-white hover:bg-[#ba1b23]; }
+  .cds-btn-success   { @apply cds-btn bg-[var(--cds-support-success)] text-white hover:bg-[#1f8b3d]; }
+  .cds-btn-danger-ghost { @apply cds-btn bg-[color:rgb(218_30_40_/_0.12)] text-[#fa4d56] border border-[var(--cds-support-error)] hover:bg-[color:rgb(218_30_40_/_0.22)]; }
+
+  /* --- Form fields --- */
+  .cds-label {
+    @apply block text-[11px] uppercase tracking-wide text-[var(--cds-text-helper)] font-mono mb-1.5;
+  }
+  .cds-input {
+    @apply w-full h-10 px-3 bg-[var(--cds-layer-01)] border-0 border-b border-[var(--cds-border-strong)]
+           text-[var(--cds-text-primary)] text-sm placeholder:text-[var(--cds-text-placeholder)];
+  }
+  .cds-textarea {
+    @apply w-full px-3 py-2.5 bg-[var(--cds-layer-01)] border-0 border-b border-[var(--cds-border-strong)]
+           text-[var(--cds-text-primary)] text-sm font-mono leading-relaxed placeholder:text-[var(--cds-text-placeholder)];
+  }
+  .cds-select { @apply cds-input appearance-none; }
+  .cds-helper-text { @apply text-[11px] text-[var(--cds-text-helper)] mt-1.5 leading-snug; }
+
+  /* --- Tiles (Carbon Tile: flat surface, subtle border, no shadow) --- */
+  .cds-tile {
+    @apply bg-[var(--cds-layer-01)] border border-[var(--cds-border-subtle)];
+  }
+  .cds-tile-header {
+    @apply flex items-center justify-between gap-3 px-5 py-3.5 border-b border-[var(--cds-border-subtle)];
+  }
+  .cds-tile-body { @apply p-5; }
+  .cds-tile-eyebrow {
+    @apply font-mono text-[11px] uppercase tracking-wide text-[var(--cds-text-helper)];
+  }
+  .cds-tile-title {
+    @apply font-mono text-xs font-semibold uppercase tracking-wide text-[var(--cds-text-primary)];
+  }
+
+  /* --- Page header (sits above a view's content) --- */
+  .cds-page-header {
+    @apply flex flex-wrap items-end justify-between gap-4 pb-5 mb-6 border-b border-[var(--cds-border-subtle)];
+  }
+  .cds-page-eyebrow {
+    @apply font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--cds-link)] mb-1.5;
+  }
+  .cds-page-title { @apply text-xl font-semibold text-[var(--cds-text-primary)]; }
+  .cds-page-desc { @apply text-[13px] text-[var(--cds-text-helper)] mt-1 max-w-2xl leading-relaxed; }
+
+  /* --- Tabs (Carbon Tabs / Content Switcher) --- */
+  .cds-tab {
+    @apply px-4 h-12 flex items-center gap-2 font-mono text-xs font-semibold uppercase tracking-wide
+           border-b-2 border-transparent text-[var(--cds-text-helper)]
+           hover:text-[var(--cds-text-primary)] hover:bg-[var(--cds-layer-01)];
+  }
+  .cds-tab-active {
+    @apply text-[var(--cds-link)] border-[var(--cds-interactive)] bg-[var(--cds-layer-01)];
+  }
+
+  /* --- Badges / status chips --- */
+  .cds-badge {
+    @apply inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-mono font-bold uppercase
+           tracking-wide border;
+  }
+  .cds-badge-success { @apply cds-badge bg-[color:rgb(36_161_72_/_0.16)] text-[#42be65] border-[var(--cds-support-success)]; }
+  .cds-badge-warning { @apply cds-badge bg-[color:rgb(241_194_27_/_0.16)] text-[#f1c21b] border-[var(--cds-support-warning)]; }
+  .cds-badge-error   { @apply cds-badge bg-[color:rgb(218_30_40_/_0.16)] text-[#fa4d56] border-[var(--cds-support-error)]; }
+  .cds-badge-info    { @apply cds-badge bg-[color:rgb(15_98_254_/_0.16)] text-[var(--cds-link)] border-[var(--cds-interactive)]; }
+  .cds-badge-neutral { @apply cds-badge bg-[var(--cds-layer-02)] text-[var(--cds-text-helper)] border-[var(--cds-border-strong)]; }
+  .cds-badge-novel   { @apply cds-badge bg-[color:rgb(165_110_255_/_0.16)] text-[#d0b3ff] border-[var(--cds-support-novel)]; }
+
+  /* --- Notification (Carbon Inline Notification: colored left stripe) --- */
+  .cds-notification {
+    @apply flex items-start gap-3 border-l-4 bg-[var(--cds-layer-01)] p-3;
+  }
+  .cds-notification-info    { @apply cds-notification border-l-[var(--cds-interactive)]; }
+  .cds-notification-success { @apply cds-notification border-l-[var(--cds-support-success)]; }
+  .cds-notification-warning { @apply cds-notification border-l-[var(--cds-support-warning)]; }
+  .cds-notification-error   { @apply cds-notification border-l-[var(--cds-support-error)]; }
+}

@@ -1,0 +1,126 @@
+name: 'Oshimai Resilience Gate'
+description: >
+  Runs an Oshimai load/chaos scenario against a target, fails the job if the resulting health
+  score drops below a threshold (or regresses against a baseline run), and posts the verdict as
+  a PR comment — the "resilience regression testing" CI gate.
+author: 'Oshimai'
+branding:
+  icon: 'activity'
+  color: 'blue'
+
+inputs:
+  server:
+    description: 'Oshimai control plane base URL (must already be running and reachable from the runner).'
+    required: true
+  scenario-path:
+    description: 'Path to a scenario YAML/JSON file, checked out in this job.'
+    required: true
+  target-base-url:
+    description: 'Target base URL to test (also drives target-ownership verification).'
+    required: false
+    default: ''
+  vus:
+    description: 'Concurrent virtual users.'
+    required: false
+    default: '20'
+  duration:
+    description: 'Test duration, e.g. 30s, 1m.'
+    required: false
+    default: '30s'
+  health-threshold:
+    description: 'Minimum acceptable health score (0-100). The job fails below this.'
+    required: false
+    default: '70'
+  baseline-run-id:
+    description: 'Optional: compare against this prior run ID and fail on regression too.'
+    required: false
+    default: ''
+  github-token:
+    description: 'Token used to post the PR comment. Defaults to the workflow token.'
+    required: false
+    default: ${{ github.token }}
+
+outputs:
+  run-id:
+    description: 'The Oshimai run ID created by this gate.'
+    value: ${{ steps.run.outputs.run_id }}
+  health-score:
+    description: 'The resulting health score (0-100).'
+    value: ${{ steps.run.outputs.health_score }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version-file: ${{ github.action_path }}/../../../go.mod
+
+    - name: Build oshimai CLI
+      shell: bash
+      run: go build -o /tmp/oshimai ${{ github.action_path }}/../../../cmd/cli
+
+    - name: Run scenario and evaluate health score
+      id: run
+      shell: bash
+      run: |
+        set -e
+        ARGS=(-server "${{ inputs.server }}" -scenario "${{ inputs.scenario-path }}" -vus "${{ inputs.vus }}" -duration "${{ inputs.duration }}")
+        if [ -n "${{ inputs.target-base-url }}" ]; then
+          ARGS+=(-base-url "${{ inputs.target-base-url }}")
+        fi
+
+        OUTPUT=$(/tmp/oshimai run "${ARGS[@]}")
+        echo "$OUTPUT"
+
+        RUN_ID=$(echo "$OUTPUT" | grep -o '"id": "[^"]*"' | head -1 | cut -d'"' -f4)
+        SCORE=$(echo "$OUTPUT" | grep -o '"health_score": [0-9]*' | head -1 | grep -o '[0-9]*$')
+
+        echo "run_id=$RUN_ID" >> "$GITHUB_OUTPUT"
+        echo "health_score=$SCORE" >> "$GITHUB_OUTPUT"
+
+        THRESHOLD="${{ inputs.health-threshold }}"
+        if [ -z "$SCORE" ]; then
+          echo "::error::Could not read a health score from the run output."
+          exit 1
+        fi
+        if [ "$SCORE" -lt "$THRESHOLD" ]; then
+          echo "::error::Health score $SCORE is below threshold $THRESHOLD."
+          echo "GATE_FAILED=1" >> "$GITHUB_ENV"
+        fi
+        echo "RUN_ID=$RUN_ID" >> "$GITHUB_ENV"
+        echo "SCORE=$SCORE" >> "$GITHUB_ENV"
+
+    - name: Compare against baseline
+      if: ${{ inputs.baseline-run-id != '' }}
+      shell: bash
+      run: |
+        set -e
+        TREND=$(curl -sf "${{ inputs.server }}/api/v1/runs/${{ env.RUN_ID }}/trend?baseline=${{ inputs.baseline-run-id }}" || true)
+        echo "$TREND"
+        if echo "$TREND" | grep -q '"regressed": *true'; then
+          echo "::error::Resilience regressed against baseline run ${{ inputs.baseline-run-id }}."
+          echo "GATE_FAILED=1" >> "$GITHUB_ENV"
+        fi
+
+    - name: Comment on PR
+      if: ${{ github.event_name == 'pull_request' }}
+      uses: actions/github-script@v7
+      with:
+        github-token: ${{ inputs.github-token }}
+        script: |
+          const score = process.env.SCORE || 'N/A';
+          const runId = process.env.RUN_ID || 'unknown';
+          const failed = process.env.GATE_FAILED === '1';
+          const verdict = failed ? '🚨 **Resilience gate FAILED**' : '✅ **Resilience gate passed**';
+          github.rest.issues.createComment({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: context.issue.number,
+            body: `${verdict}\n\nOshimai run \`${runId}\` — health score **${score}/100**.`,
+          });
+
+    - name: Fail the job if the gate failed
+      if: ${{ env.GATE_FAILED == '1' }}
+      shell: bash
+      run: exit 1

@@ -1,0 +1,37 @@
+{
+  "server": {
+    "internal_error": "Internal server error",
+    "invalid_json": "Invalid JSON payload: %v",
+    "run_not_found": "Run \"%s\" not found",
+    "run_id_required": "Run ID is required",
+    "target_url_required": "target_url parameter is required",
+    "openapi_required": "openapi_spec is required",
+    "synthesis_failed": "Scenario synthesis failed: %v",
+    "streaming_unsupported": "Streaming unsupported by server",
+    "no_baseline": "No baseline run available to compare against yet",
+    "share_token_failed": "Failed to generate share token",
+    "public_run_not_found": "No public run found for this share link",
+    "public_domain_blocked": "\"%s\" is a well-known public domain and cannot be verified as a target",
+    "resolve_failed": "Could not resolve \"%s\": %v",
+    "aws_keys_required": "aws_access_key and aws_secret_key are required",
+    "aws_ip_not_found": "None of \"%s\"'s resolved IPs (%v) were found as Elastic IPs in this AWS account",
+    "cultural_preset_not_found": "Cultural preset \"%s\" not found",
+    "agent_registered": "Agent registered successfully",
+    "multiregion_started": "Multi-region run started",
+    "approval_required": "Production runs require a second operator's approval",
+    "verification_required": "Target ownership verification required before testing public targets"
+  },
+  "verification": {
+    "status_verified": "Verified",
+    "status_pending": "Pending verification",
+    "status_failed": "Verification challenge failed",
+    "dns_txt_record": "Add DNS TXT record with token: %s",
+    "well_known_file": "Place file at /.well-known/oshimai-challenge with content: %s"
+  },
+  "remediation": {
+    "circuit_broken": "Circuit breaker tripped due to excessive error rate or latency",
+    "high_p99": "P99 latency breached target threshold: %d ms",
+    "network_degradation": "Network degradation detected: packet loss %d%%",
+    "scale_recommendation": "Consider scaling up service replicas or optimizing slow endpoints"
+  }
+}

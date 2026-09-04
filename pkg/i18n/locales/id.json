@@ -1,0 +1,37 @@
+{
+  "server": {
+    "internal_error": "Terjadi kesalahan internal server",
+    "invalid_json": "Payload JSON tidak valid: %v",
+    "run_not_found": "Uji jalan (run) \"%s\" tidak ditemukan",
+    "run_id_required": "ID run wajib diisi",
+    "target_url_required": "Parameter target_url wajib diisi",
+    "openapi_required": "openapi_spec wajib diisi",
+    "synthesis_failed": "Sintesis skenario gagal: %v",
+    "streaming_unsupported": "Streaming tidak didukung oleh server",
+    "no_baseline": "Belum ada run baseline untuk dibandingkan",
+    "share_token_failed": "Gagal menghasilkan token share",
+    "public_run_not_found": "Tidak ada run publik yang ditemukan untuk link share ini",
+    "public_domain_blocked": "\"%s\" adalah domain publik ternama dan tidak dapat diverifikasi sebagai target",
+    "resolve_failed": "Tidak dapat me-resolve \"%s\": %v",
+    "aws_keys_required": "aws_access_key dan aws_secret_key wajib diisi",
+    "aws_ip_not_found": "Tidak ada satupun IP \"%s\" (%v) yang cocok dengan Elastic IP di akun AWS ini",
+    "cultural_preset_not_found": "Preset budaya-lokal \"%s\" tidak ditemukan",
+    "agent_registered": "Agent berhasil didaftarkan",
+    "multiregion_started": "Uji beban multi-region dimulai",
+    "approval_required": "Uji jalan production memerlukan persetujuan operator kedua",
+    "verification_required": "Verifikasi kepemilikan target diperlukan sebelum menguji target publik"
+  },
+  "verification": {
+    "status_verified": "Terverifikasi",
+    "status_pending": "Menunggu verifikasi",
+    "status_failed": "Tantangan verifikasi gagal",
+    "dns_txt_record": "Tambahkan DNS TXT record dengan token: %s",
+    "well_known_file": "Letakkan file di /.well-known/oshimai-challenge dengan isi: %s"
+  },
+  "remediation": {
+    "circuit_broken": "Circuit breaker terpicu karena lonjakan error rate atau latensi",
+    "high_p99": "Latensi P99 melampaui batas toleransi: %d ms",
+    "network_degradation": "Degradasi jaringan terdeteksi: packet loss %d%%",
+    "scale_recommendation": "Pertimbangkan untuk menambah replika service atau optimasi endpoint lambat"
+  }
+}
