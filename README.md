@@ -1,5 +1,7 @@
 # Oshimai
 
+![Oshimai banner](banner.jpeg)
+
 **Autonomous Chaos & Load-Testing Twin.**
 
 [![Go](https://img.shields.io/badge/go-1.27%2B-00ADD8?logo=go&logoColor=white)](go.mod)
@@ -30,34 +32,22 @@ Most load/chaos tools (k6, Gatling, Locust, JMeter, Chaos Mesh, Gremlin) execute
 
 ## Architecture
 
-```
-┌─────────────┐   ┌──────────────┐   ┌─────────────────┐
-│  Web (React) │   │  oshimai CLI │   │  CI (resilience- │
-│  embedded in │   │              │   │  gate action)     │
-│  the server  │   │              │   │                   │
-└──────┬───────┘   └──────┬───────┘   └────────┬──────────┘
-       │                  │                    │
-       └──────────────────┼────────────────────┘
-                           │  REST + SSE  (/api/v1/...)
-                  ┌────────▼─────────┐
-                  │  oshimai-server    │  control plane: run coordinator,
-                  │  (cmd/server)      │  event bus, verification, scheduler
-                  └────────┬───────────┘
-                           │
-          ┌────────────────┼─────────────────┐
-          │                │                  │
-  ┌───────▼──────┐  ┌──────▼───────┐  ┌───────▼────────┐
-  │ pkg/loadengine│  │  pkg/chaos    │  │ pkg/k8schaos   │
-  │ (in-process   │  │  mock | http_ │  │ pod-kill,      │
-  │  VUs)         │  │  proxy | netem│  │ HPA watch      │
-  └───────────────┘  │  | resource_  │  └────────────────┘
-                      │  stress       │
-                      └───────────────┘
-          │
-  ┌───────▼────────┐
-  │ oshimai-agent   │  remote load-gen workers, long-poll
-  │ (other regions) │  for work from the control plane
-  └─────────────────┘
+```mermaid
+flowchart TD
+    WEB["Web Dashboard<br/><sub>React, embedded in the server binary</sub>"]
+    CLI["oshimai CLI"]
+    CI["CI Gate<br/><sub>resilience-gate action</sub>"]
+    EXT["Terraform · Browser Ext · VS Code Ext"]
+
+    WEB & CLI & CI & EXT -->|"REST + SSE&nbsp;&nbsp;/api/v1/..."| SERVER
+
+    SERVER["oshimai-server (cmd/server)<br/><sub>run coordinator · event bus · verification · scheduler</sub>"]
+
+    SERVER --> LOADENGINE["pkg/loadengine<br/><sub>in-process virtual users</sub>"]
+    SERVER --> CHAOS["pkg/chaos<br/><sub>mock · http_proxy · netem · resource_stress</sub>"]
+    SERVER --> K8S["pkg/k8schaos<br/><sub>pod-kill · HPA reaction watch</sub>"]
+    SERVER --> DB[("SQLite<br/><sub>run history</sub>")]
+    SERVER -.->|"register / long-poll / report"| AGENT["oshimai-agent<br/><sub>workers in other regions</sub>"]
 ```
 
 Everything — the dashboard, the CLI, the [GitHub Action](.github/actions/resilience-gate), the [Terraform provider](tools/terraform-provider-oshimai), the [browser extension](tools/browser-extension), and the [VS Code extension](tools/vscode-extension) — is a thin client over the same control-plane REST/SSE API (`pkg/server`). Run history persists to a SQLite database file next to the `oshimai-server` binary by default (see [Configuration](#configuration)), so it survives a restart without any external database to stand up.
