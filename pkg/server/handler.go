@@ -1115,7 +1115,10 @@ func (h *APIHandler) handleToggleGameDaySchedule(w http.ResponseWriter, r *http.
 	var req struct {
 		Enabled bool `json:"enabled"`
 	}
-	_ = json.NewDecoder(r.Body).Decode(&req)
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeJSONError(w, http.StatusBadRequest, fmt.Sprintf("invalid json payload: %v", err))
+		return
+	}
 	if !h.gameDays.SetEnabled(id, req.Enabled) {
 		writeJSONError(w, http.StatusNotFound, fmt.Sprintf("schedule %q not found", id))
 		return

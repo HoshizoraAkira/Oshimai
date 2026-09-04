@@ -1,8 +1,20 @@
+// Package chaos abstracts fault injection behind a single ChaosDriver interface (Apply/Revert/
+// Status) with four interchangeable implementations selected by -chaos-driver: mock (no side
+// effects, the safe default), http_proxy (a userspace proxy that works without root on any OS),
+// netem (real kernel-level network faults via `tc netem`, Linux + NET_ADMIN only), and
+// resource_stress (CPU/memory/disk pressure on the host running the server).
+//
+// Every driver gets wrapped in ManagedChaosDriver, which is where this package's actual safety
+// guarantee lives: a dead-man-switch watchdog timer, an OS SIGINT/SIGTERM trap, and context-
+// cancellation monitoring all independently call Revert — so a fault a test forgets to clean up,
+// a crashed process, or an operator hitting Ctrl+C can never leave a real network fault (dropped
+// packets, injected latency) permanently applied to a host after Oshimai stops watching it.
 package chaos
 
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
 	"os/signal"
 	"sync"
@@ -57,7 +69,13 @@ func (m *ManagedChaosDriver) handleSignals() {
 		return
 	case sig := <-m.sigChan:
 		if sig != nil {
-			_ = m.Revert(context.Background())
+			// This runs as the process is exiting on SIGINT/SIGTERM — a failure here is the
+			// last chance to know a fault was left applied on the host, since Status() (where
+			// Revert also records the error) won't outlive the process. Must be logged, not
+			// discarded, or an operator has zero trail explaining a stuck network fault.
+			if err := m.Revert(context.Background()); err != nil {
+				log.Printf("[Oshimai] chaos: revert on shutdown signal failed, fault may still be active: %v", err)
+			}
 		}
 	}
 }
@@ -117,8 +135,12 @@ func (m *ManagedChaosDriver) Apply(ctx context.Context, fault FaultSpec) error {
 
 	// Arm Dead-Man Switch watchdog timer
 	m.watchdogTimer = time.AfterFunc(fault.Duration, func() {
-		// Asynchronous auto-revert triggered by watchdog expiry
-		_ = m.Revert(context.Background())
+		// Asynchronous auto-revert triggered by watchdog expiry. Revert() already records the
+		// failure in m.status.LastError for anyone polling Status(), but nothing guarantees a
+		// poller is watching at exactly this moment, so this is also logged directly.
+		if err := m.Revert(context.Background()); err != nil {
+			log.Printf("[Oshimai] chaos: dead-man-switch auto-revert failed, fault may still be active: %v", err)
+		}
 	})
 
 	// Also monitor contextual cancellation
@@ -129,7 +151,9 @@ func (m *ManagedChaosDriver) Apply(ctx context.Context, fault FaultSpec) error {
 			isCurrent := m.status.CurrentFault != nil && m.status.CurrentFault.ID == targetFaultID
 			m.mu.Unlock()
 			if isCurrent {
-				_ = m.Revert(context.Background())
+				if err := m.Revert(context.Background()); err != nil {
+					log.Printf("[Oshimai] chaos: revert on context cancellation failed, fault may still be active: %v", err)
+				}
 			}
 		case <-m.stopSignals:
 			return

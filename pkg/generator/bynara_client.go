@@ -1,19 +1,14 @@
-// Package generator — bynara_client.go
-//
-// BynamaClient implements LLMClient against the Bynara AI router, which exposes an
-// OpenAI-compatible /v1/chat/completions endpoint. The base URL is
-// https://router.bynara.id/v1 and the key is supplied as a Bearer token in the
-// Authorization header.
-//
-// Free models available on the plan (as of 2026-09):
-//   - agnes-2.0-flash  (Vision)
-//   - agnes-2.5-flash  (Vision)
-//   - laguna-s-2.1     (Text)
-//   - minimax-m3-free  (Vision)
-//   - mistral-large    (Text)
-//   - mistral-medium-3-5 (Vision)
-//   - qwen3.8-27b      (Text)
-//   - stepfun-3.7-flash (Vision)
+// Package generator turns everything that isn't hand-written scenario YAML into a
+// pkg/vusession.Scenario: parsing an OpenAPI spec (openapi_parser.go) or a natural-language
+// description (nl_scenario.go) from scratch, importing an existing HAR/Postman/Insomnia/JMeter/k6
+// export (*_importer.go), mining an OTel trace file into a ranked endpoint dependency graph
+// (dependency_graph.go, otel_miner.go), or auto-discovering a target by crawling it
+// (crawler.go). enricher.go and payload_synth.go fill in realistic synthetic request
+// bodies/assertions for whatever a source format didn't specify, and locale_id.go swaps in
+// Indonesian-flavored synthetic data (names, phone numbers, addresses) when asked. LLMClient
+// (anthropic_client.go, bynara_client.go) is the optional AI backend nl_scenario.go and
+// pkg/narrator call into — every one of those features degrades to a heuristic/non-AI path when
+// no client is configured, since BYNARA_API_KEY is opt-in (see the README's Configuration table).
 package generator
 
 import (
@@ -35,9 +30,16 @@ const (
 	BynamaDefaultModel = "mistral-medium-3-5"
 )
 
-// BynamaClient implements LLMClient using the Bynara AI router (OpenAI-compatible).
-// It is only ever constructed when a BYNARA_API_KEY is configured; everything else in this
-// package degrades gracefully to heuristics when no LLMClient is available.
+// BynamaClient implements LLMClient against the Bynara AI router, which exposes an
+// OpenAI-compatible /v1/chat/completions endpoint at BynamaBaseURL, with the key supplied as a
+// Bearer token in the Authorization header. It is only ever constructed when a BYNARA_API_KEY is
+// configured; everything else in this package degrades gracefully to heuristics when no
+// LLMClient is available.
+//
+// Free models available on the plan as of 2026-09 (subject to change without notice — check
+// https://bynara.id for the current list rather than trusting this comment to stay accurate):
+// agnes-2.0-flash, agnes-2.5-flash, laguna-s-2.1, minimax-m3-free, mistral-large,
+// mistral-medium-3-5 (BynamaDefaultModel), qwen3.8-27b, stepfun-3.7-flash.
 type BynamaClient struct {
 	apiKey     string
 	model      string

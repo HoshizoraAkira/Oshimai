@@ -1,3 +1,10 @@
+// Package loadengine is Oshimai's virtual-user execution core: it drives the actual HTTP traffic
+// against a target for a load test, in one of three profiles (flat_vu, target_rps, ramping — see
+// pool.go), while a sliding-window circuit breaker (circuit_breaker.go) watches error rate and P99
+// latency in real time and can abort the run early rather than let a broken target get hammered
+// for its full configured duration. Each virtual user's session logic (the actual scenario state
+// machine) lives in pkg/vusession; this package is purely about *how many* of them run and *how
+// fast*, not what any single one of them does.
 package loadengine
 
 import (

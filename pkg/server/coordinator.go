@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"strings"
 	"sync"
@@ -245,7 +246,9 @@ func (tc *TestCoordinator) executeRun(runID string, req CreateRunRequest) {
 
 	// 3. Mark Run as Running
 	startTime := time.Now()
-	_ = tc.updateRunStatus(runID, RunStatusRunning, startTime, time.Time{}, nil, "")
+	if err := tc.updateRunStatus(runID, RunStatusRunning, startTime, time.Time{}, nil, ""); err != nil {
+		log.Printf("[Oshimai] run %s: failed to persist Running status: %v", runID, err)
+	}
 
 	// 4. Initialize Load Engine
 	if req.LoadConfig.Client == nil && tc.cfg.HTTPClientFactory != nil {
@@ -468,7 +471,12 @@ func (tc *TestCoordinator) attachScenario(runID string, scenario *vusession.Scen
 
 func (tc *TestCoordinator) finalizeRun(runID string, status RunStatus, summary *loadengine.ExecutionSummary, errStr string) {
 	endTime := time.Now()
-	_ = tc.updateRunStatus(runID, status, time.Time{}, endTime, summary, errStr)
+	// This is the run's terminal status write — if it fails, the run is stuck showing "Running"
+	// forever with no other signal anywhere that it actually finished, so this failure must be
+	// logged rather than silently dropped like a routine best-effort update.
+	if err := tc.updateRunStatus(runID, status, time.Time{}, endTime, summary, errStr); err != nil {
+		log.Printf("[Oshimai] run %s: failed to persist terminal status %q: %v", runID, status, err)
+	}
 
 	if status == RunStatusCompleted {
 		tc.maybeSubmitBenchmark(runID)

@@ -1,3 +1,10 @@
+// Package remediation turns a raw pkg/loadengine.ExecutionSummary — error rate, P50/P90/P99
+// latency, throughput — into a DiagnosticReport a non-engineer can act on: a 1-100 health score,
+// a plain-language status label, a root-cause guess (e.g. "database connection pool exhausted"),
+// and concrete actionable fixes, optionally translated to Bahasa Indonesia and scaled by
+// BusinessContext into an estimated Rupiah loss from the observed error rate. Analyze is the
+// single entry point every caller (the run coordinator, the CLI's `status`/`narrate` commands)
+// goes through; pkg/narrator builds on top of this same report to add an AI-written narrative.
 package remediation
 
 import (

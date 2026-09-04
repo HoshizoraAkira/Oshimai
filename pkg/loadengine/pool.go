@@ -63,7 +63,14 @@ func runFlatVU(ctx context.Context, cfg EngineConfig, sc *vusession.Scenario, re
 
 				seq := atomic.AddUint64(&sessionSeq, 1)
 				vuID := fmt.Sprintf("vu-%d-%d", workerID, seq)
-				_ = executeSession(ctx, vuID, sc, cfg.Client, recorder)
+				if err := executeSession(ctx, vuID, sc, cfg.Client, recorder); err != nil {
+					// executeSession can only fail from vusession.NewVirtualUser rejecting sc
+					// itself (e.g. a missing initial step) — the same failure on every retry
+					// since sc never changes. Record it once as a visible error instead of
+					// spinning this goroutine at 100% CPU forever with zero telemetry.
+					recorder.Record(0, 0, true)
+					return
+				}
 			}
 		}()
 	}
@@ -120,7 +127,9 @@ func runTargetRPS(ctx context.Context, cfg EngineConfig, sc *vusession.Scenario,
 						<-sem
 						wg.Done()
 					}()
-					_ = executeSession(ctx, id, sc, cfg.Client, recorder)
+					if err := executeSession(ctx, id, sc, cfg.Client, recorder); err != nil {
+						recorder.Record(0, 0, true)
+					}
 				}(vuID)
 			default:
 				// Capacity saturated, record dropped / overload
@@ -172,7 +181,12 @@ func runRamping(ctx context.Context, cfg EngineConfig, sc *vusession.Scenario, r
 
 				seq := atomic.AddUint64(&sessionSeq, 1)
 				vuID := fmt.Sprintf("ramp-vu-%d-%d", wID, seq)
-				_ = executeSession(ctx, vuID, sc, cfg.Client, recorder)
+				if err := executeSession(ctx, vuID, sc, cfg.Client, recorder); err != nil {
+					// See the identical comment in runFlatVU: this failure recurs identically on
+					// every retry, so record it once and stop instead of spinning silently.
+					recorder.Record(0, 0, true)
+					return
+				}
 			}
 		}()
 	}

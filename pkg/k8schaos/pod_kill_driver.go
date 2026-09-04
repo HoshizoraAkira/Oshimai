@@ -69,11 +69,23 @@ func (d *PodKillDriver) Apply(ctx context.Context, fault chaos.FaultSpec) error 
 
 	rand.Shuffle(len(pods), func(i, j int) { pods[i], pods[j] = pods[j], pods[i] })
 	var killed []string
+	var lastDeleteErr error
 	for i := 0; i < killCount; i++ {
 		if err := d.client.DeletePod(ctx, namespace, pods[i]); err != nil {
-			continue // Best-effort: a pod that raced to termination on its own isn't a driver failure.
+			lastDeleteErr = err // Best-effort per pod: one that raced to termination on its own isn't a driver failure — but if EVERY delete fails below, the last one explains why.
+			continue
 		}
 		killed = append(killed, pods[i])
+	}
+
+	// If every targeted deletion failed (e.g. RBAC forbids delete though list succeeded), this is
+	// a genuine experiment failure, not a partial best-effort success — reporting StateInjected
+	// here would tell an operator a chaos fault is live when in fact zero pods were touched.
+	if len(killed) == 0 {
+		d.mu.Lock()
+		d.status = chaos.ChaosStatus{State: chaos.StateFailed, LastError: fmt.Sprintf("failed to delete any of the %d targeted pod(s) matching selector %q: %v", killCount, selector, lastDeleteErr)}
+		d.mu.Unlock()
+		return fmt.Errorf("failed to delete any of the %d targeted pod(s) matching selector %q: %w", killCount, selector, lastDeleteErr)
 	}
 
 	d.mu.Lock()
@@ -82,7 +94,6 @@ func (d *PodKillDriver) Apply(ctx context.Context, fault chaos.FaultSpec) error 
 	faultCopy := fault
 	d.status = chaos.ChaosStatus{
 		State: chaos.StateInjected, CurrentFault: &faultCopy, AppliedAt: now, ExpiresAt: now.Add(fault.Duration),
-		LastError: fmt.Sprintf("killed pods: %v", killed),
 	}
 	return nil
 }

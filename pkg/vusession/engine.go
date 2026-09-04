@@ -1,3 +1,12 @@
+// Package vusession defines and executes Oshimai's scenario DSL: a probabilistic (Markov-style)
+// state machine of HTTP steps, parsed from YAML/JSON (parser.go) into a Scenario of named Steps
+// connected by weighted Transitions (model.go). A single VirtualUser (engine.go) walks that graph
+// from Scenario.InitialStepID until it lands on a step with no outgoing transitions ("END"),
+// extracting values out of each response into session-scoped variables (extractor.go) for later
+// steps to interpolate into their own request bodies/headers/paths, and evaluating per-step
+// assertions to decide success/failure — this is "one simulated user's real click-through session
+// through your app," not just a flat list of requests. pkg/loadengine is the thing that runs many
+// VirtualUsers concurrently against this same Scenario to actually generate load.
 package vusession
 
 import (

@@ -1,9 +1,17 @@
+// Package i18n is the server-side counterpart to the dashboard's I18nContext (web/src/context):
+// it embeds the same three locale JSON files (locales/*.json — en, id, jp) the frontend ships, so
+// that server-generated, user-facing text (API error messages via T()) is translated consistently
+// with the UI instead of always falling back to English. RequestLang resolves which language a
+// given HTTP request wants from its "lang" query parameter or Accept-Language header, normalizing
+// both "ja" and "jp" to the same "jp" catalog the frontend also treats as canonical (see the web
+// i18n docs/comments for why "jp" — not the ISO 639-1 "ja" — ended up as the internal code).
 package i18n
 
 import (
 	"embed"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"strings"
 	"sync"
@@ -31,11 +39,17 @@ func loadLocales() {
 		path := fmt.Sprintf("locales/%s.json", lang)
 		data, err := localesFS.ReadFile(path)
 		if err != nil {
+			// The embedded FS is compiled in, so this can only fail if locales/*.json's
+			// go:embed glob stopped matching a file the code still expects — a build-time
+			// packaging mistake, not a runtime condition. T() falls back to English silently
+			// otherwise, so this is logged to give any translator/build a trail to notice.
+			log.Printf("[Oshimai] i18n: failed to read embedded locale %q: %v", path, err)
 			continue
 		}
 
 		var nested map[string]interface{}
 		if err := json.Unmarshal(data, &nested); err != nil {
+			log.Printf("[Oshimai] i18n: locale %q contains malformed JSON, falling back to %q for it: %v", path, defaultLang, err)
 			continue
 		}
 
