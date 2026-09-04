@@ -54,6 +54,8 @@ Everything — the dashboard, the CLI, the [GitHub Action](.github/actions/resil
 
 ## Quick start
 
+Prebuilt binaries for Windows, Linux, and macOS (amd64 and arm64) are available on the [Releases page](https://github.com/HoshizoraAkira/Oshimai/releases) — download, extract, and skip straight to `./oshimai-server -addr :8080`. To build from source instead:
+
 **Prerequisites:** Go 1.27+, Node.js 18+.
 
 > **Note:** `pkg/server` embeds the dashboard at compile time via `//go:embed all:dist` (see [`web/embed.go`](web/embed.go)). `web/dist` is a generated build artifact and is **not** committed to the repo, so the frontend must be built once *before* `./cmd/server` will compile — on a fresh clone, `go build ./...` fails until you've run `npm run build` in `web/` at least once.
