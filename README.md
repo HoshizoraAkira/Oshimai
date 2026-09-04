@@ -2,11 +2,17 @@
 
 **Autonomous Chaos & Load-Testing Twin.**
 
+[![Go](https://img.shields.io/badge/go-1.27%2B-00ADD8?logo=go&logoColor=white)](go.mod)
+[![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
+[![Storage: SQLite](https://img.shields.io/badge/storage-SQLite-003B57?logo=sqlite&logoColor=white)](#configuration)
+
 Oshimai is a self-hosted control plane for load testing and chaos engineering that doesn't just run the profile you hand it — it searches for the answers you actually want: the exact concurrency your service can safely handle, the minimum fault severity that breaks it, and whether your target even belongs to you in the first place. It ships as a single Go binary with an embedded React dashboard, a scriptable CLI, and a REST/SSE API that every client — dashboard, CLI, CI gate, Terraform, browser extension, VS Code — speaks against.
 
-```
+```bash
 oshimai run -scenario ./examples/scenario_ecommerce.yaml -vus 20 -duration 15s
 ```
+
+**Contents:** [Why Oshimai](#why-oshimai) · [Architecture](#architecture) · [Quick start](#quick-start) · [CLI](#cli-reference) · [Scenarios](#writing-scenarios) · [Chaos drivers](#chaos-drivers) · [CI integration](#ci-integration) · [Configuration](#configuration) · [Project layout](#project-layout) · [Testing](#testing) · [Safety](#safety)
 
 ## Why Oshimai
 
@@ -54,7 +60,7 @@ Most load/chaos tools (k6, Gatling, Locust, JMeter, Chaos Mesh, Gremlin) execute
   └─────────────────┘
 ```
 
-Everything — the dashboard, the CLI, the [GitHub Action](.github/actions/resilience-gate), the [Terraform provider](tools/terraform-provider-oshimai), the [browser extension](tools/browser-extension), and the [VS Code extension](tools/vscode-extension) — is a thin client over the same control-plane REST/SSE API (`pkg/server`).
+Everything — the dashboard, the CLI, the [GitHub Action](.github/actions/resilience-gate), the [Terraform provider](tools/terraform-provider-oshimai), the [browser extension](tools/browser-extension), and the [VS Code extension](tools/vscode-extension) — is a thin client over the same control-plane REST/SSE API (`pkg/server`). Run history persists to a SQLite database file next to the `oshimai-server` binary by default (see [Configuration](#configuration)), so it survives a restart without any external database to stand up.
 
 ## Quick start
 
@@ -96,45 +102,11 @@ Once built, the server binary is fully self-contained — you only need Node.js 
 
 ## CLI reference
 
-Every command accepts a global `-server` flag (default `http://localhost:8080`).
-
-| Command | Purpose |
-|---|---|
-| `run` | Launch a test run from a scenario file or an OpenAPI spec, wait for completion |
-| `list` | List recent runs |
-| `status` | Show a run's status and diagnostics |
-| `narrate` | AI-narrate a run's diagnostics, optionally cross-referenced with a repo scan and/or dependency graph |
-| `abort` | Abort a running test |
-| `approve` | Approve a run held for guarded-production approval |
-| `generate` | Synthesize a scenario from an OpenAPI spec file |
-| `presets` | Manage cultural load presets: `list \| create \| update \| delete` |
-| `verify` | Target-ownership verification: `challenge \| confirm \| status` |
-| `verify-cloud` | Verify target ownership via AWS IP allocation instead of DNS |
-| `autofuzz` | Bisect the minimal chaos severity that breaks a scenario |
-| `autopilot` | Bisect the exact safe concurrency ceiling for a scenario |
-| `graph` | Mine an OTel trace file into a ranked endpoint dependency graph |
-| `scan` | Scan a Go repo for resiliency anti-patterns — no server required |
-| `import` | Convert a HAR/Postman/Insomnia/JMeter/k6 export into an Oshimai scenario |
-| `agents` | List connected multi-region load-generation agents |
-| `run-multiregion` | Fan a run out across connected agents and merge the results |
-| `k8s-pod-kill` | Delete a percentage of pods matching a label selector |
-| `k8s-autoscaler` | Watch an HPA's replica count during a load test and verdict its reaction time |
-| `gameday` | Manage recurring GameDay schedules: `list \| create \| delete` |
-
-```bash
-oshimai run -openapi ./api.json -base-url https://staging.example.com -target-rps 50 -duration 30s
-oshimai presets create -name "Black Friday" -peak-multiplier 25 -duration-sec 240
-oshimai verify challenge -target https://my-shop.co.id
-oshimai autofuzz -scenario ./examples/scenario_ecommerce.yaml -vus 20
-oshimai autopilot -scenario ./examples/scenario_ecommerce.yaml -min-vus 1 -max-vus 300
-oshimai scan -path .
-```
-
-Run `oshimai help` for the full flag list per command.
+`oshimai` is a thin client over the same REST API the dashboard uses — 19 commands covering runs, verification, chaos bisection, Kubernetes fault injection, multi-region fan-out, and more. See **[docs/cli.md](docs/cli.md)** for the full command table, usage examples, and the target-verification workflow. Run `oshimai help` for the flag list per command.
 
 ## Writing scenarios
 
-A scenario is a YAML state machine of HTTP steps with variable extraction, probabilistic (Markov-style) transitions, and assertions — see [`examples/scenario_ecommerce.yaml`](examples/scenario_ecommerce.yaml) for a full example, or generate one instead of hand-writing it:
+A scenario is a YAML state machine of HTTP steps with variable extraction, probabilistic (Markov-style) transitions, and assertions. See **[docs/scenarios.md](docs/scenarios.md)** for the full DSL reference, or generate one instead of hand-writing it:
 
 ```bash
 oshimai generate -openapi ./api.json -base-url https://staging.example.com   # from an OpenAPI spec
@@ -154,7 +126,7 @@ Set with `-chaos-driver` on `oshimai-server`:
 | `netem` | Linux + `NET_ADMIN` | Real network-level fault injection via `tc netem` |
 | `resource_stress` | none | CPU/memory/disk pressure on the host running the server |
 
-Every driver is wrapped with a dead-man-switch (`ManagedChaosDriver`) that guarantees faults are reverted even if a run is aborted or crashes mid-flight.
+Every driver is wrapped with a dead-man-switch (`ManagedChaosDriver`) that guarantees faults are reverted even if a run is aborted or crashes mid-flight. See **[docs/chaos.md](docs/chaos.md)** for fault parameters and Kubernetes-native chaos (pod-kill, HPA reaction-time verdicts).
 
 ## CI integration
 
@@ -171,8 +143,9 @@ Copy [`.env.example`](.env.example) to `.env` (auto-loaded on server start; real
 | `SERVER_ADDR` | `:8080` | Listen address |
 | `MAX_RUNS` | `2` | Maximum concurrent load test runs |
 | `CHAOS_DRIVER` | `mock` | Default fault-injection driver |
+| `DB_PATH` | `oshimai.db` next to the server binary | SQLite database file for run history. Set to `:memory:` for a non-persistent store. |
 
-The equivalent server flags (`-addr`, `-max-runs`, `-chaos-driver`, `-enforce-target-verification`, `-require-production-approval`) take precedence over environment variables.
+The equivalent server flags (`-addr`, `-max-runs`, `-chaos-driver`, `-db`) take precedence over these environment variables. `-enforce-target-verification` and `-require-production-approval` are command-line-only by design — they default to the safe/strict setting and deliberately have no environment-variable override, so a shared `.env` file can't silently disable a safety control.
 
 ## Project layout
 
@@ -186,6 +159,7 @@ pkg/            21 subsystem packages: loadengine, chaos, k8schaos, vusession,
                 server, i18n, dotenv, ...
 web/            React + TypeScript + Vite dashboard, embedded into the server binary
 examples/       sample scenario files
+docs/           CLI reference and other usage guides
 tools/          terraform-provider-oshimai, browser-extension, vscode-extension
                 (each is its own standalone project — see their own READMEs)
 ```
@@ -207,7 +181,7 @@ go test ./...
 
 ## Safety
 
-Oshimai is built to inject real faults and drive real load against real services — used carelessly, it can take down something you don't own or didn't mean to. Target-ownership verification and guarded-production approval are on by default; don't disable them unless you understand exactly what you're opting out of, and only ever point Oshimai at infrastructure you have explicit authorization to test.
+Oshimai is built to inject real faults and drive real load against real services — used carelessly, it can take down something you don't own or didn't mean to. Target-ownership verification and guarded-production approval are on by default; don't disable them unless you understand exactly what you're opting out of, and only ever point Oshimai at infrastructure you have explicit authorization to test. See **[docs/verification.md](docs/verification.md)** for how both gates work and how to complete target verification.
 
 ## Contributing
 
